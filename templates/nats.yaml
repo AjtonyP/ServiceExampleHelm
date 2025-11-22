@@ -1,0 +1,74 @@
+{{- if .Values.nats.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.nats.name }}
+  labels:
+    app: {{ .Values.nats.name }}
+    {{- include "serviceexample.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: {{ .Values.nats.service.port }}
+      targetPort: 4222
+      name: client
+    - port: {{ .Values.nats.service.monitoringPort }}
+      targetPort: 8222
+      name: monitoring
+  selector:
+    app: {{ .Values.nats.name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.nats.name }}
+  labels:
+    app: {{ .Values.nats.name }}
+    {{- include "serviceexample.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.nats.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.nats.name }}
+        {{- include "serviceexample.labels" . | nindent 8 }}
+      annotations:
+        {{- if .Values.nats.observability.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.nats.service.monitoringPort }}"
+        prometheus.io/path: "{{ .Values.nats.observability.metricsPath }}"
+        {{- end }}
+    spec:
+      containers:
+      - name: nats
+        image: {{ .Values.nats.image.repository }}:{{ .Values.nats.image.tag }}
+        imagePullPolicy: {{ .Values.nats.image.pullPolicy }}
+        args:
+          - "-m"
+          - "8222"
+        ports:
+        - containerPort: 4222
+          name: client
+        - containerPort: 8222
+          name: monitoring
+        resources:
+          {{- toYaml .Values.nats.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8222
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8222
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+{{- end }}

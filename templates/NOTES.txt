@@ -1,0 +1,85 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+=======================================================================
+ServiceExample Application
+=======================================================================
+
+The ServiceExample application has been deployed with the following components:
+
+{{- if .Values.app.service.type }}
+1. Application Service ({{ .Values.app.service.type }})
+   - Port: {{ .Values.app.service.port }}
+   {{- if eq .Values.app.service.type "NodePort" }}
+   - NodePort: {{ .Values.app.service.nodePort }}
+   - Access via: http://<node-ip>:{{ .Values.app.service.nodePort }}
+   {{- end }}
+{{- end }}
+
+{{- if .Values.mongodb.enabled }}
+
+2. MongoDB Replica Set
+   - Replica Set: {{ .Values.mongodb.replicaSet }}
+   - Replicas: {{ .Values.mongodb.replicas }}
+   - Service: {{ .Values.mongodb.name }}:{{ .Values.mongodb.service.port }}
+   - Storage: {{ .Values.mongodb.persistence.size }} ({{ .Values.mongodb.persistence.storageClass }})
+   
+   Note: MongoDB replica set initialization will take a few moments.
+   Check the init job status with:
+   $ kubectl get jobs {{ .Values.mongodb.name }}-init-replica
+{{- end }}
+
+{{- if .Values.redis.enabled }}
+
+3. Redis Cache
+   - Service: {{ .Values.redis.name }}:{{ .Values.redis.service.port }}
+   - Storage: {{ .Values.redis.persistence.size }} ({{ .Values.redis.persistence.storageClass }})
+   {{- if .Values.redis.observability.enabled }}
+   - Metrics Port: {{ .Values.redis.observability.exporterPort }}
+   {{- end }}
+{{- end }}
+
+{{- if .Values.nats.enabled }}
+
+4. NATS Messaging
+   - Service: {{ .Values.nats.name }}:{{ .Values.nats.service.port }}
+   - Monitoring: {{ .Values.nats.name }}:{{ .Values.nats.service.monitoringPort }}
+{{- end }}
+
+=======================================================================
+Observability
+=======================================================================
+
+{{- if .Values.app.observability.enabled }}
+Application endpoints:
+  - Health: http://{{ .Values.app.name }}:{{ .Values.app.service.port }}{{ .Values.app.observability.healthPath }}
+  - Metrics: http://{{ .Values.app.name }}:{{ .Values.app.service.port }}{{ .Values.app.observability.metricsPath }}
+{{- end }}
+
+All components are configured with Prometheus annotations for metrics scraping.
+
+=======================================================================
+Get Started
+=======================================================================
+
+1. Check the status of your pods:
+   $ kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+
+2. View logs from the application:
+   $ kubectl logs -l app={{ .Values.app.name }} -f
+
+3. Access the application:
+   {{- if eq .Values.app.service.type "NodePort" }}
+   $ curl http://<node-ip>:{{ .Values.app.service.nodePort }}
+   {{- else }}
+   $ kubectl port-forward svc/{{ .Values.app.name }} {{ .Values.app.service.port }}:{{ .Values.app.service.port }}
+   $ curl http://localhost:{{ .Values.app.service.port }}
+   {{- end }}
+
+=======================================================================

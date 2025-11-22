@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}
+  labels:
+    app: {{ .Values.app.name }}
+    {{- include "serviceexample.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.app.service.type }}
+  ports:
+    - port: {{ .Values.app.service.port }}
+      targetPort: 9080
+      {{- if eq .Values.app.service.type "NodePort" }}
+      nodePort: {{ .Values.app.service.nodePort }}
+      {{- end }}
+      name: http
+  selector:
+    app: {{ .Values.app.name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}
+  labels:
+    app: {{ .Values.app.name }}
+    {{- include "serviceexample.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.app.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+        {{- include "serviceexample.labels" . | nindent 8 }}
+      annotations:
+        {{- if .Values.app.observability.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.app.service.port }}"
+        prometheus.io/path: "{{ .Values.app.observability.metricsPath }}"
+        {{- end }}
+    spec:
+      containers:
+      - name: {{ .Values.app.name }}
+        image: {{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}
+        imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+        ports:
+        - containerPort: 9080
+          name: http
+        env:
+        - name: ASPNETCORE_URLS
+          value: "http://+:9080"
+        {{- if .Values.mongodb.enabled }}
+        - name: Aspire__MongoDB__Driver__ConnectionString
+          value: "mongodb://{{ .Values.mongodb.name }}-0.{{ .Values.mongodb.name }}-headless:27017,{{ .Values.mongodb.name }}-1.{{ .Values.mongodb.name }}-headless:27017,{{ .Values.mongodb.name }}-2.{{ .Values.mongodb.name }}-headless:27017/?replicaSet={{ .Values.mongodb.replicaSet }}"
+        {{- end }}
+        {{- if .Values.redis.enabled }}
+        - name: Aspire__StackExchange__Redis__ConnectionString
+          value: "{{ .Values.redis.name }}:{{ .Values.redis.service.port }}"
+        {{- end }}
+        {{- if .Values.nats.enabled }}
+        - name: Aspire__NATS__Net__ConnectionString
+          value: "nats://{{ .Values.nats.name }}:{{ .Values.nats.service.port }}"
+        {{- end }}
+        {{- if .Values.app.resources }}
+        resources:
+          {{- toYaml .Values.app.resources | nindent 10 }}
+        {{- end }}
+        {{- if .Values.app.observability.enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.app.observability.healthPath }}
+            port: 9080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.app.observability.healthPath }}
+            port: 9080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        {{- end }}

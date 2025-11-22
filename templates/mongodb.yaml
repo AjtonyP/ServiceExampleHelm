@@ -1,0 +1,157 @@
+{{- if .Values.mongodb.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.mongodb.name }}
+  labels:
+    app: {{ .Values.mongodb.name }}
+    {{- include "serviceexample.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - port: {{ .Values.mongodb.service.port }}
+      targetPort: 27017
+      name: mongodb
+  selector:
+    app: {{ .Values.mongodb.name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.mongodb.name }}-headless
+  labels:
+    app: {{ .Values.mongodb.name }}
+    {{- include "serviceexample.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - port: {{ .Values.mongodb.service.port }}
+      targetPort: 27017
+      name: mongodb
+  selector:
+    app: {{ .Values.mongodb.name }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.mongodb.name }}
+  labels:
+    app: {{ .Values.mongodb.name }}
+    {{- include "serviceexample.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ .Values.mongodb.name }}-headless
+  replicas: {{ .Values.mongodb.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.mongodb.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.mongodb.name }}
+        {{- include "serviceexample.labels" . | nindent 8 }}
+      annotations:
+        {{- if .Values.mongodb.observability.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.mongodb.observability.port }}"
+        {{- end }}
+    spec:
+      containers:
+      - name: mongodb
+        image: {{ .Values.mongodb.image.repository }}:{{ .Values.mongodb.image.tag }}
+        imagePullPolicy: {{ .Values.mongodb.image.pullPolicy }}
+        command:
+          - mongod
+          - --replSet
+          - {{ .Values.mongodb.replicaSet }}
+          - --bind_ip_all
+        ports:
+        - containerPort: 27017
+          name: mongodb
+        env:
+        - name: MONGO_INITDB_DATABASE
+          value: "admin"
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
+        resources:
+          {{- toYaml .Values.mongodb.resources | nindent 10 }}
+        livenessProbe:
+          exec:
+            command:
+            - mongosh
+            - --eval
+            - "db.adminCommand('ping')"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - mongosh
+            - --eval
+            - "db.adminCommand('ping')"
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+  volumeClaimTemplates:
+  - metadata:
+      name: mongodb-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: {{ .Values.mongodb.persistence.storageClass | default .Values.global.storageClass }}
+      resources:
+        requests:
+          storage: {{ .Values.mongodb.persistence.size }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.mongodb.name }}-init
+  labels:
+    app: {{ .Values.mongodb.name }}
+    {{- include "serviceexample.labels" . | nindent 4 }}
+data:
+  init-replica.sh: |
+    #!/bin/bash
+    sleep 10
+    mongosh --host {{ .Values.mongodb.name }}-0.{{ .Values.mongodb.name }}-headless:27017 <<EOF
+    rs.initiate({
+      _id: "{{ .Values.mongodb.replicaSet }}",
+      members: [
+        { _id: 0, host: "{{ .Values.mongodb.name }}-0.{{ .Values.mongodb.name }}-headless:27017" },
+        { _id: 1, host: "{{ .Values.mongodb.name }}-1.{{ .Values.mongodb.name }}-headless:27017" },
+        { _id: 2, host: "{{ .Values.mongodb.name }}-2.{{ .Values.mongodb.name }}-headless:27017" }
+      ]
+    })
+    EOF
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.mongodb.name }}-init-replica
+  labels:
+    app: {{ .Values.mongodb.name }}
+    {{- include "serviceexample.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: init-replica
+        image: {{ .Values.mongodb.image.repository }}:{{ .Values.mongodb.image.tag }}
+        command: ["/bin/bash", "/scripts/init-replica.sh"]
+        volumeMounts:
+        - name: init-scripts
+          mountPath: /scripts
+      volumes:
+      - name: init-scripts
+        configMap:
+          name: {{ .Values.mongodb.name }}-init
+          defaultMode: 0755
+{{- end }}

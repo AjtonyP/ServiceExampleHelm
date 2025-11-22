@@ -1,0 +1,99 @@
+# Default values for serviceexample
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Application configuration
+app:
+  name: serviceexample
+  replicaCount: 1
+  image:
+    repository: ajtonyp/serviceexample
+    tag: "0.0.1"
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 9080
+    nodePort: 30080
+  resources: {}
+  observability:
+    enabled: true
+    metricsPath: /metrics
+    healthPath: /health
+
+# MongoDB configuration
+mongodb:
+  enabled: true
+  name: mongodb
+  replicaSet: rs0
+  replicas: 3
+  image:
+    repository: mongo
+    tag: "7.0"
+    pullPolicy: IfNotPresent
+  service:
+    port: 27017
+  persistence:
+    enabled: true
+    storageClass: longhorn
+    size: 2Gi
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  observability:
+    enabled: true
+    port: 27017
+
+# Redis configuration
+redis:
+  enabled: true
+  name: redis
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  service:
+    port: 6379
+  persistence:
+    enabled: true
+    storageClass: longhorn
+    size: 1Gi
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  observability:
+    enabled: true
+    exporterPort: 9121
+
+# NATS configuration
+nats:
+  enabled: true
+  name: nats
+  image:
+    repository: nats
+    tag: "2.10-alpine"
+    pullPolicy: IfNotPresent
+  service:
+    port: 4222
+    monitoringPort: 8222
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+  observability:
+    enabled: true
+    metricsPath: /metrics
+
+# Global settings
+global:
+  storageClass: longhorn
