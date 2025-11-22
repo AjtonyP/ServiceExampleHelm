@@ -1,8 +1,8 @@
 apiVersion: v2
 name: serviceexample
-description: A Helm chart for ServiceExample .NET application with MongoDB, Redis, and NATS 
+description: A Helm chart for ServiceExample .NET application with MongoDB, Redis, and NATS
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: "0.0.1"
 keywords:
   - serviceexample
@@ -12,3 +12,27 @@ keywords:
   - nats
 maintainers:
   - name: AjtonyP
+    email: ajtony.patko@gmail.com
+home: https://github.com/AjtonyP/ServiceExampleHelm
+sources:
+  - https://github.com/vvitkovsky/ServiceExample
+  - https://github.com/AjtonyP/ServiceExampleHelm
+icon: https://raw.githubusercontent.com/dotnet/brand/main/logo/dotnet-logo.svg
+annotations:
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/images: |
+    - name: serviceexample
+      image: ajtonyp/serviceexample:0.0.1
+    - name: mongodb
+      image: mongo:7.0
+    - name: redis
+      image: redis:7-alpine
+    - name: nats
+      image: nats:2.10-alpine
+    - name: redis-exporter
+      image: oliver006/redis_exporter:latest
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/operator: "false"
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/recommendations: |
+    - url: https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack

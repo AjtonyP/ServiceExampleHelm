@@ -1,0 +1,19 @@
+annotations:
+  # Artifact Hub specific annotations
+  artifacthub.io/displayName: ServiceExample
+  artifacthub.io/links: |
+    - name: Source Code
+      url: https://github.com/vvitkovsky/ServiceExample
+    - name: Chart Repository
+      url: https://github.com/AjtonyP/ServiceExampleHelm
+  artifacthub.io/maintainers: |
+    - name: AjtonyP
+      email: ajtony.patko@gmail.com
+  artifacthub.io/operator: "false"
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/recommendations: |
+    - url: https://artifacthub.io/packages/helm/bitnami/mongodb
+    - url: https://artifacthub.io/packages/helm/bitnami/redis
+  artifacthub.io/signKey: |
+    fingerprint: ""
+    url: ""
