@@ -41,10 +41,11 @@ jobs:
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_SKIP_EXISTING: "true"
         with:
           charts_dir: .
           skip_packaging: true
-          skip_existing: true
+          mark_as_latest: false
 
       - name: Configure Pages
         uses: actions/configure-pages@v4
