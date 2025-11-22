@@ -45,7 +45,7 @@ jobs:
         with:
           charts_dir: .
           skip_packaging: true
-          mark_as_latest: false
+          mark_as_latest: true
 
       - name: Configure Pages
         uses: actions/configure-pages@v4
