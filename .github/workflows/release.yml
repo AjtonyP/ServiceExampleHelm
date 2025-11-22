@@ -38,14 +38,13 @@ jobs:
           helm package . -d .cr-release-packages
 
       - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.6.0
+        uses: helm/chart-releaser-action@v1.5.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           CR_SKIP_EXISTING: "true"
         with:
           charts_dir: .
           skip_packaging: true
-          mark_as_latest: true
 
       - name: Configure Pages
         uses: actions/configure-pages@v4
