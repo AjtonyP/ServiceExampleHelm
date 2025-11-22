@@ -21,6 +21,49 @@ entries:
         - url: https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack
     apiVersion: v2
     appVersion: 0.0.1
+    created: "2025-11-22T18:47:45.144485064Z"
+    description: A Helm chart for ServiceExample .NET application with MongoDB, Redis,
+      and NATS
+    digest: 2fa143ede2eabf6758427f44f38818ed5a8e1bae5387bb94c5aa755759945616
+    home: https://github.com/AjtonyP/ServiceExampleHelm
+    icon: https://raw.githubusercontent.com/dotnet/brand/main/logo/dotnet-logo.svg
+    keywords:
+    - serviceexample
+    - dotnet
+    - mongodb
+    - redis
+    - nats
+    maintainers:
+    - email: ajtony.patko@gmail.com
+      name: AjtonyP
+    name: serviceexample
+    sources:
+    - https://github.com/vvitkovsky/ServiceExample
+    - https://github.com/AjtonyP/ServiceExampleHelm
+    type: application
+    urls:
+    - https://github.com/AjtonyP/ServiceExampleHelm/releases/download/serviceexample-0.1.4/serviceexample-0.1.4.tgz
+    version: 0.1.4
+  - annotations:
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/images: |
+        - name: serviceexample
+          image: ajtonyp/serviceexample:0.0.1
+        - name: mongodb
+          image: mongo:7.0
+        - name: redis
+          image: redis:7-alpine
+        - name: nats
+          image: nats:2.10-alpine
+        - name: redis-exporter
+          image: oliver006/redis_exporter:latest
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "false"
+      artifacthub.io/recommendations: |
+        - url: https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack
+    apiVersion: v2
+    appVersion: 0.0.1
     created: "2025-11-22T17:10:07.947336695Z"
     description: A Helm chart for ServiceExample .NET application with MongoDB, Redis,
       and NATS
@@ -130,4 +173,4 @@ entries:
     urls:
     - https://github.com/AjtonyP/ServiceExampleHelm/releases/download/serviceexample-0.1.1/serviceexample-0.1.1.tgz
     version: 0.1.1
-generated: "2025-11-22T17:10:07.947355491Z"
+generated: "2025-11-22T18:47:45.144508458Z"
