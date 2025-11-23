@@ -1,0 +1,50 @@
+name: Update Helm Chart Version
+
+on:
+  repository_dispatch:
+    types: [update-chart]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup yq
+        uses: mikefarah/yq@v4
+      
+      - name: Update Chart version
+        run: |
+          VERSION=${{ github.event.client_payload.version }}
+
+          echo "Updating chart to version $VERSION"
+
+          # Update Chart.yaml version and appVersion
+          yq -i '.version = env(VERSION)' Chart.yaml
+          yq -i '.appVersion = env(VERSION)' Chart.yaml
+
+          # Update values.yaml default image tag
+          yq -i '.app.image.tag = env(VERSION)' values.yaml
+
+          # Update artifacthub annotations with new image version
+          yq -i '
+            .annotations."artifacthub.io/images" 
+              |= sub("ajtonyp/serviceexample:[^\" ]*", "ajtonyp/serviceexample:" + env(VERSION))
+          ' Chart.yaml
+      
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add Chart.yaml values.yaml
+          
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update chart to version ${{ github.event.client_payload.version }}"
+            git push
+          fi

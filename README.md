@@ -71,3 +71,52 @@ All components are configured with:
 - Prometheus scrape annotations
 - Health/liveness/readiness probes
 - Metrics endpoints
+
+## Automated Chart Updates
+
+This repository includes automated workflows for publishing and updating the Helm chart.
+
+### Chart Release Workflow
+
+When `Chart.yaml` is updated on `main` branch:
+
+1. Chart is packaged with `helm package`
+2. GitHub release is created with the chart archive
+3. Chart index is updated and published to GitHub Pages
+4. Chart becomes available at `https://ajtonyp.github.io/ServiceExampleHelm`
+
+### Chart Update Workflow
+
+Triggered automatically by ServiceExampleCI when a new Docker image is built:
+
+1. Receives version number via `repository_dispatch` event
+2. Updates `Chart.yaml` version and appVersion
+3. Updates `values.yaml` default image tag
+4. Commits and pushes changes
+5. Triggers the release workflow above
+
+### Chart Structure
+
+```
+serviceexample/
+├── Chart.yaml              # Chart metadata
+├── values.yaml            # Default configuration
+├── values.schema.json     # Configuration validation
+└── templates/
+    ├── app-deployment.yaml    # ServiceExample deployment
+    ├── app-service.yaml       # Application service
+    ├── mongodb.yaml           # MongoDB replica set
+    ├── redis.yaml             # Redis deployment
+    └── nats.yaml              # NATS deployment
+```
+
+## Artifact Hub
+
+This chart is published to [Artifact Hub](https://artifacthub.io/)
+
+Metadata includes:
+
+- Container images used
+- Maintainer information
+- Changelog tracking
+- License information
