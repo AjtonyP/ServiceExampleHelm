@@ -1,0 +1,134 @@
+{{- if .Values.grafana.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app.name }}-dashboard
+  labels:
+    app: {{ .Values.app.name }}
+    grafana_dashboard: "1"
+    {{- include "serviceexample.labels" . | nindent 4 }}
+data:
+  serviceexample-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "ServiceExample Metrics",
+        "tags": ["serviceexample", "aspnetcore"],
+        "timezone": "browser",
+        "schemaVersion": 16,
+        "version": 0,
+        "refresh": "30s",
+        "panels": [
+          {
+            "title": "HTTP Request Rate",
+            "type": "graph",
+            "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+            "targets": [
+              {
+                "expr": "rate(http_requests_received_total{job=\"{{ .Values.app.name }}\"}[5m])",
+                "legendFormat": "{{`{{method}} {{route}}`}}"
+              }
+            ]
+          },
+          {
+            "title": "HTTP Request Duration (p95)",
+            "type": "graph",
+            "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"{{ .Values.app.name }}\"}[5m]))",
+                "legendFormat": "{{`{{method}} {{route}}`}}"
+              }
+            ]
+          },
+          {
+            "title": "Application Health Status",
+            "type": "stat",
+            "gridPos": {"x": 0, "y": 8, "w": 6, "h": 4},
+            "targets": [
+              {
+                "expr": "up{job=\"{{ .Values.app.name }}\"}",
+                "legendFormat": "Status"
+              }
+            ]
+          },
+          {
+            "title": "Process CPU Usage",
+            "type": "graph",
+            "gridPos": {"x": 6, "y": 8, "w": 9, "h": 4},
+            "targets": [
+              {
+                "expr": "rate(process_cpu_seconds_total{job=\"{{ .Values.app.name }}\"}[5m]) * 100",
+                "legendFormat": "CPU %"
+              }
+            ]
+          },
+          {
+            "title": "Process Memory Usage (MB)",
+            "type": "graph",
+            "gridPos": {"x": 15, "y": 8, "w": 9, "h": 4},
+            "targets": [
+              {
+                "expr": "process_working_set_bytes{job=\"{{ .Values.app.name }}\"} / 1024 / 1024",
+                "legendFormat": "Memory MB"
+              }
+            ]
+          },
+          {
+            "title": "MongoDB Connection Status",
+            "type": "stat",
+            "gridPos": {"x": 0, "y": 12, "w": 8, "h": 4},
+            "targets": [
+              {
+                "expr": "mongodb_up{job=\"{{ .Values.mongodb.name }}\"}",
+                "legendFormat": "MongoDB"
+              }
+            ]
+          },
+          {
+            "title": "Redis Connection Status",
+            "type": "stat",
+            "gridPos": {"x": 8, "y": 12, "w": 8, "h": 4},
+            "targets": [
+              {
+                "expr": "redis_up{job=\"{{ .Values.redis.name }}-exporter\"}",
+                "legendFormat": "Redis"
+              }
+            ]
+          },
+          {
+            "title": "NATS Connection Status",
+            "type": "stat",
+            "gridPos": {"x": 16, "y": 12, "w": 8, "h": 4},
+            "targets": [
+              {
+                "expr": "up{job=\"{{ .Values.nats.name }}\"}",
+                "legendFormat": "NATS"
+              }
+            ]
+          },
+          {
+            "title": "HTTP Error Rate (4xx/5xx)",
+            "type": "graph",
+            "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+            "targets": [
+              {
+                "expr": "rate(http_requests_received_total{job=\"{{ .Values.app.name }}\",code=~\"4..|5..\"}[5m])",
+                "legendFormat": "{{`{{code}} {{method}}`}}"
+              }
+            ]
+          },
+          {
+            "title": "Active HTTP Requests",
+            "type": "graph",
+            "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+            "targets": [
+              {
+                "expr": "http_requests_in_progress{job=\"{{ .Values.app.name }}\"}",
+                "legendFormat": "In Progress"
+              }
+            ]
+          }
+        ]
+      }
+    }
+{{- end }}

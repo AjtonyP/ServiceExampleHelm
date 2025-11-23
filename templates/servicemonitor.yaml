@@ -1,0 +1,73 @@
+{{- if .Values.app.observability.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.app.name }}
+  labels:
+    app: {{ .Values.app.name }}
+    {{- include "serviceexample.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+  endpoints:
+  - port: http
+    path: {{ .Values.app.observability.metricsPath }}
+    interval: 30s
+    scrapeTimeout: 10s
+{{- end }}
+---
+{{- if .Values.mongodb.observability.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.mongodb.name }}
+  labels:
+    app: {{ .Values.mongodb.name }}
+    {{- include "serviceexample.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.mongodb.name }}
+  endpoints:
+  - port: mongodb
+    interval: 30s
+    scrapeTimeout: 10s
+{{- end }}
+---
+{{- if .Values.redis.observability.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.redis.name }}-exporter
+  labels:
+    app: {{ .Values.redis.name }}
+    {{- include "serviceexample.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.redis.name }}
+  endpoints:
+  - port: metrics
+    interval: 30s
+    scrapeTimeout: 10s
+{{- end }}
+---
+{{- if .Values.nats.observability.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.nats.name }}
+  labels:
+    app: {{ .Values.nats.name }}
+    {{- include "serviceexample.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.nats.name }}
+  endpoints:
+  - port: monitoring
+    path: {{ .Values.nats.observability.metricsPath }}
+    interval: 30s
+    scrapeTimeout: 10s
+{{- end }}

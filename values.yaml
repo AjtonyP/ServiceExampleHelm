@@ -90,6 +90,11 @@ nats:
   observability:
     enabled: true
     metricsPath: /metrics
+# Grafana configuration
+grafana:
+  enabled: true
+  dashboards:
+    enabled: true
 # Global settings
 global:
   storageClass: longhorn
