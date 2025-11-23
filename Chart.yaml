@@ -20,9 +20,10 @@ sources:
 icon: https://raw.githubusercontent.com/dotnet/brand/main/logo/dotnet-logo.svg
 annotations:
   artifacthub.io/containsSecurityUpdates: "false"
-  artifacthub.io/images: |
+  artifacthub.io/images:
     - name: serviceexample
-      image: ajtonyp/serviceexample:0.2.1 name: mongodb
+      image: ajtonyp/serviceexample:0.2.1 
+    - name: mongodb
       image: mongo:7.0
     - name: redis
       image: redis:7-alpine
