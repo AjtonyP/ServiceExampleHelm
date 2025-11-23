@@ -19,7 +19,7 @@ jobs:
       
       - name: Update Chart version
         run: |
-          VERSION=${{ github.event.client_payload.version }}
+          export VERSION=${{ github.event.client_payload.version }}
 
           echo "Updating chart to version $VERSION"
 
