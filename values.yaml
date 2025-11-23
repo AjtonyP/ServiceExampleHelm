@@ -8,7 +8,7 @@ app:
   replicaCount: 1
   image:
     repository: ajtonyp/serviceexample
-    tag: "0.0.1"
+    tag: "0.2.1"
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -19,7 +19,6 @@ app:
     enabled: true
     metricsPath: /metrics
     healthPath: /health
-
 # MongoDB configuration
 mongodb:
   enabled: true
@@ -46,7 +45,6 @@ mongodb:
   observability:
     enabled: true
     port: 27017
-
 # Redis configuration
 redis:
   enabled: true
@@ -71,7 +69,6 @@ redis:
   observability:
     enabled: true
     exporterPort: 9121
-
 # NATS configuration
 nats:
   enabled: true
@@ -93,7 +90,6 @@ nats:
   observability:
     enabled: true
     metricsPath: /metrics
-
 # Global settings
 global:
   storageClass: longhorn
