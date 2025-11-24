@@ -115,30 +115,37 @@ metadata:
 data:
   init-replica.sh: |
     #!/bin/bash
-    sleep 10
-    mongosh --host {{ .Values.mongodb.name }}-0.{{ .Values.mongodb.name }}-headless:27017 <<EOF
-    rs.initiate({
-      _id: "{{ .Values.mongodb.replicaSet }}",
-      members: [
-        { _id: 0, host: "{{ .Values.mongodb.name }}-0.{{ .Values.mongodb.name }}-headless:27017" },
-        { _id: 1, host: "{{ .Values.mongodb.name }}-1.{{ .Values.mongodb.name }}-headless:27017" },
-        { _id: 2, host: "{{ .Values.mongodb.name }}-2.{{ .Values.mongodb.name }}-headless:27017" }
-      ]
-    })
+    set -e
+    echo "Waiting for MongoDB pods to be ready..."
+    sleep 15
+    
+    echo "Checking replica set status..."
+    if mongosh --host {{ .Values.mongodb.name }}-0.{{ .Values.mongodb.name }}-headless:27017 --eval "rs.status()" --quiet 2>&1 | grep -q "no replset config"; then
+      echo "Initializing replica set..."
+      mongosh --host {{ .Values.mongodb.name }}-0.{{ .Values.mongodb.name }}-headless:27017 <<EOF
+      rs.initiate({
+        _id: "{{ .Values.mongodb.replicaSet }}",
+        members: [
+          { _id: 0, host: "{{ .Values.mongodb.name }}-0.{{ .Values.mongodb.name }}-headless:27017" },
+          { _id: 1, host: "{{ .Values.mongodb.name }}-1.{{ .Values.mongodb.name }}-headless:27017" },
+          { _id: 2, host: "{{ .Values.mongodb.name }}-2.{{ .Values.mongodb.name }}-headless:27017" }
+        ]
+      })
     EOF
+      echo "Replica set initialized successfully"
+    else
+      echo "Replica set already initialized, skipping"
+    fi
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ .Values.mongodb.name }}-init-replica
+  name: {{ .Values.mongodb.name }}-init-replica-{{ now | date "20060102-150405" }}
   labels:
     app: {{ .Values.mongodb.name }}
     {{- include "serviceexample.labels" . | nindent 4 }}
-  annotations:
-    "helm.sh/hook": post-install
-    "helm.sh/hook-weight": "10"
-    "helm.sh/hook-delete-policy": before-hook-creation
 spec:
+  ttlSecondsAfterFinished: 300
   template:
     spec:
       restartPolicy: OnFailure
