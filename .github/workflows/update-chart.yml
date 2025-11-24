@@ -34,13 +34,8 @@ jobs:
 
           # Update artifacthub annotations with new image version
           yq -i '
-            .annotations."artifacthub.io/images"
-              |= map(
-                  if .name == "serviceexample"
-                  then .image = "ajtonyp/serviceexample:" + env(VERSION)
-                  else .
-                  end
-                )
+            .annotations."artifacthub.io/images" |= 
+              sub("image: ajtonyp/serviceexample:[0-9.]+", "image: ajtonyp/serviceexample:" + env(VERSION))
           ' Chart.yaml
       
       - name: Commit and push changes
