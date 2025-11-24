@@ -15,10 +15,7 @@ app:
     port: 9080
     nodePort: 30080
   resources: {}
-  observability:
-    enabled: true
-    metricsPath: /metrics
-    healthPath: /health
+  
 # MongoDB configuration
 mongodb:
   enabled: true
