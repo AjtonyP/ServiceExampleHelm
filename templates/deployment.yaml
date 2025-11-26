@@ -34,12 +34,6 @@ spec:
       labels:
         app: {{ .Values.app.name }}
         {{- include "serviceexample.labels" . | nindent 8 }}
-      annotations:
-        {{- if .Values.app.observability.enabled }}
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "{{ .Values.app.service.port }}"
-        prometheus.io/path: "{{ .Values.app.observability.metricsPath }}"
-        {{- end }}
     spec:
       containers:
       - name: {{ .Values.app.name }}

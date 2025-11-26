@@ -56,12 +56,6 @@ The ServiceExample application has been deployed with the following components:
 Observability
 =======================================================================
 
-{{- if .Values.app.observability.enabled }}
-Application endpoints:
-  - Health: http://{{ .Values.app.name }}:{{ .Values.app.service.port }}{{ .Values.app.observability.healthPath }}
-  - Metrics: http://{{ .Values.app.name }}:{{ .Values.app.service.port }}{{ .Values.app.observability.metricsPath }}
-{{- end }}
-
 All components are configured with Prometheus annotations for metrics scraping.
 
 =======================================================================
